@@ -53,4 +53,79 @@ Following are steps I followed on Mac OS running Mohave:
     * replace ```<port number>``` with 22 for now which is default, but since this will change in the future, it is important to know how to specific the value.
     * replace ```<user>``` with ubuntu
     * replace ```<host ip or dns>``` with the static ip of your lightsail server.
-4.
+
+4.  You should have successfully connected to the lightsail virtual server via direct ssh.
+
+### Creating a ssh key for the Grader user, building the user and setting permissions.
+This will outline steps needed to generate a key for a new user that will be provisioned in your lightsail server.
+#### Windows OS
+Windows does not have a key generator by default, so one must be obtained.  A good example of a keygen tool is [puttygen](https://www.ssh.com/ssh/putty/windows/puttygen).
+#### Mac OS
+1. open a terminal window {command + T}.
+2. change to your .ssh folder for your profile.
+```cd ~/.ssh```
+3. execute command ```ssh-keygen```.  I will include example:
+```
+Generating public/private rsa key pair.
+Enter file in which to save the key (/Users/jdb/.ssh/id_rsa): grader
+Enter passphrase (empty for no passphrase):
+Enter same passphrase again:
+Your identification has been saved in grader.
+Your public key has been saved in grader.pub.
+The key fingerprint is:
+SHA256:################################### <user>@<domain>
+The key's randomart image is:
++---[RSA 2048]----+
+|      oOO@++..   |
+|      o.o.%.+ +  |
+|      ..+o @ = . |
+|     ..o oE o    |
+|    .o .S        |
+|    o.+o...      |
+|   o o++ o       |
+|    .oo o        |
+|    ..           |
++----[SHA256]-----+
+```
+4. I left passphrase empty, and pressed enter until the randomart image was output.
+5. In your current folder, there should be two new files.
+```
+-rw-------  1 user  group  1831 Apr 25 00:36 grader
+-rw-r--r--  1 user  group   406 Apr 25 00:36 grader.pub
+```
+* The grader file will be the private key which will be shared with Udacity when submitting the course.
+* The grader.pub file is the public key that will be added to the lightsail server user grader for granting access.
+6. Either open the grader.pub file in a text editor or execute the command ```cat grader.pub``` to list the contents and then copy that to the text editor.  this will be needed on a future step.
+7. ssh into the lightsail server as outlined in previous section.  It is expected that you will be logged in as ubuntu. The next steps will be performed on the lightsail server as ubuntu user.
+```ssh -i ~/.ssh/id_rsa -p 22 ubuntu@<lightsail ip address>```
+
+#### Adding user and setting permissions on lightsail server
+
+    * create the grader user: ```sudo adduser grader```
+    * give the grader user sudo permissions:
+    ```sudo nano /etc/sudoers.d/grader```
+    * paste into this new file the following text:
+    ```grader ALL=(ALL) NOPASSWD:ALL```
+    * save the file with control-O and return
+    * exit nano with control-X
+8. Switch to the grader user and then switch to the grader home path.
+    ```sudo su grader```
+    ```cd```
+9. create .ssh directory and change into new directory
+    ```mkdir .ssh```
+    ```cd .ssh```
+10. create authorized_keys file.
+    ```touch authorized_keys```
+11. add the recently created grader.pub value to this new file and udpate permissions.
+    * open file to edit.
+    ```sudo nano authorized_keys```
+    * paste the contents of the grader.pub file into this file, and then save (control-O return) and exit (control-x).
+    * change permissions of authorized_keys.
+    ```sudo chmod 644 authorized_keys```
+    * change permissions of .ssh folder
+    ```sudo chmod 700 ~/.ssh```
+    * type ```exit```and return to switch back to ubuntu user.
+    * type ```exit```and return again to exit ssh connection.
+12. Attempt to reconnect as grader user.
+```ssh -i ~/.ssh/grader -p 22 grader@<lightsail ip address>```
+13. Do not proceed to next session unless your connection steps are successful.  We will be altering how to connect which may be catastrophic if the steps thus far were not successful.
