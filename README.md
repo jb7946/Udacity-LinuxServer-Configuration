@@ -49,8 +49,8 @@ Following are steps I followed on Mac OS running Mohave:
 
     ```ssh -i <keyfilename> -p <port number> <user>@<host ip or dns>```
 
-    * replace <<keyfilename>> with the name you renamed your LightsailDefaultKey##locale##.pem
-    * replace <<port number>> with 22 for now which is default, but since this will change in the future, it is important to know how to specific the value.
-    * replace <<user>> with ubuntu
-    * replace <<host ip or dns>> with the static ip of your lightsail server.
+    * replace <<<keyfilename>>> with the name you renamed your LightsailDefaultKey##locale##.pem
+    * replace <<<port number>>> with 22 for now which is default, but since this will change in the future, it is important to know how to specific the value.
+    * replace <<<user>>> with ubuntu
+    * replace <<<host ip or dns>>> with the static ip of your lightsail server.
 4.
