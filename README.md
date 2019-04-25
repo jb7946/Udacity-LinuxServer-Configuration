@@ -169,16 +169,19 @@ The key's randomart image is:
 2. Run the following commands to get needed packages and select Y if asked to confirm installation.
 
 ```
-sudo apt-get install finger apache2 libapache2-mod-wsgi postgresql postgresql-contrib postgresql-server-dev-9.5 python2.7 python-flask python-pip httplib2 python-oauth2client virtualenv git
+sudo apt-get install finger apache2 libapache2-mod-wsgi postgresql postgresql-contrib postgresql-server-dev-9.5 python2.7 python-flask python-pip httplib2 python-oauth2client virtualenv git libpq-dev python-dev
 ```
 * for the next steps if the sudo pip install does not work, then try sudo -H pip install instead.
 ```
 sudo pip install psycopg2
 sudo pip install psycopg2-binary
 sudo pip install flask
+sudo pip install httplib2
 sudo pip install requests
-sudo pip install SQLAlchemy
+sudo pip install sqlalchemy
+sudo pip install virtualenv
 sudo pip install google-api-python-client oauth2client
+sudo virtualenv venv
 ```
 
 ### Ensure Lightsail server has all needed updates and security patches
@@ -191,6 +194,157 @@ sudo pip install google-api-python-client oauth2client
    > | ```sudo apt-get upgrade``` |
 > | ```sudo apt-get autoremove```|
    >
-   
-   
 
+
+
+### Clone your item catalog into the Lightsail server
+
+For these steps, you must be connected to the lightsail server via ssh.  These commands are intended to be executed in the virtual server shell as ubuntu or grader.
+
+1. Ensure apache2 service is running with command.
+
+   ```sudo service apache2 start```
+
+2. Enable mod_wsgi with the command.
+
+   ```sudo a2enmod wsgi```
+
+3. Change to the default web folder for apache.  ``` cd /var/www```
+
+4. Create catalog folder.  ```mkdir catalog```
+
+5. Change into catalog folder. ```cd catalog```
+
+6. Copy the item catalog project from GitHub with this command:
+
+   ``` git clone https://github.com/jb7946/item-catalog catalog```
+
+### Configure Web Server Gateway Interface (WSGI)
+
+For these steps, you must be connected to the lightsail server via ssh.  These commands are intended to be executed in the virtual server shell as ubuntu or grader.
+
+1. create wsgi config file using following command and paste in below text
+
+   ```sudo nano /var/www/catalog/catalog.wsgi```
+
+```
+#!/usr/bin/python
+import sys
+import logging
+logging.basicConfig(stream=sys.stderr)
+sys.path.insert(0,"/var/www/catalog/catalog/")
+
+from catalog import app as application
+application.secret_key = 'your_secret_key'
+```
+
+* Control-O and return to save
+* Control-X to exit
+
+### Create Catalog Virtual host in Apache2
+
+For these steps, you must be connected to the lightsail server via ssh.  These commands are intended to be executed in the virtual server shell as ubuntu or grader.
+
+1. use this command to create a new virtual host config file that has my specific server configuration settings.  Paste the information below into this new file.
+   * ```sudo nano /etc/apache2/sites-available/catalog.conf```
+
+```
+<VirtualHost *:80>
+                ServerName 3.14.103.186
+                ServerAdmin grader@3.14.103.186
+                WSGIDaemonProcess catalog python-path=/var/www/catalog:/var/www/catalog/venv/lib/python2.7/site-packages
+                WSGIProcessGroup catalog
+                WSGIScriptAlias / /var/www/catalog/catalog.wsgi
+                <Directory /var/www/catalog/catalog/>
+                        Order allow,deny
+                        Allow from all
+                </Directory>
+                Alias /static /var/www/catalog/catalog/static
+                <Directory /var/www/catalog/catalog/static/>
+                        Order allow,deny
+                        Allow from all
+                </Directory>
+                ErrorLog ${APACHE_LOG_DIR}/error.log
+                LogLevel warn
+                CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+```
+
+### Configure postgreSQL database
+
+For these steps, you must be connected to the lightsail server via ssh.  These commands are intended to be executed in the virtual server shell as ubuntu or grader.
+
+1. Switch to the postgres user with this command ```sudo -u postgres -i```
+
+2. Your command prompt will change to a $.  Enter command ```psql``` to get database console.
+
+3. Enter the following commands at the database prompt and press enter for each line to send:
+
+   ```
+   create user catalog with password catalog;
+   alter user catalog createdb;
+   create database myitemcatalog with owner catalog;
+   revoke all on schema public from public;
+   grant all on schema public to catalog;
+   ```
+
+4. Exit database with \q and return.
+5. use command ```exit``` to return to your primary user.
+
+### Load Data from project into database.
+
+For these steps, you must be connected to the lightsail server via ssh.  These commands are intended to be executed in the virtual server shell as ubuntu or grader.
+
+1. Prior to loading data, the /var/www/catalog/catalog/database_setup.py and /var/www/catalog/catalog/database_items.py files must have a change to the engine variable so they will connect to the postgresql database instead of building a localized db.
+
+   * in each file from step 1, find the following line
+
+     ```engine = create_engine('sqlite:///myitemcatalog.db')```
+
+   * and change it to the following
+
+     ```engine = create_engine('postgresql://catalog:catalog@localhost/myitemcatalog')```
+
+2. change directory to the database files ```cd /var/www/catalog/catalog```
+
+3. use python to run the two files and define and populate the database.
+
+   ```python database_setup.py
+   python database_setup.py
+   python database_items.py
+   ```
+
+4. The database should now be loaded with data for the catalog app.
+
+### Reconfigure application.py 
+
+For these steps, you must be connected to the lightsail server via ssh.  These commands are intended to be executed in the virtual server shell as ubuntu or grader.
+
+1. in folder /var/www/catalog/catalog, rename the application.py file with the following command:
+
+   ```mv application.py __init__.py```
+
+2. Edit the ```__init__.py``` file with command ```sudo nano __init.py```.
+
+   - find the following line
+
+     ```engine = create_engine('sqlite:///myitemcatalog.db')```
+
+   - and change it to the following
+
+     ```engine = create_engine('postgresql://catalog:catalog@localhost/myitemcatalog')```
+
+3. Restart apache2 server with command ```sudo service apache2 restart```
+
+4. Enable the site with command ```sudo a2ensite catalog```
+
+5. The application should now come up on the browser at [http://3.14.103.186](http://3.14.103.186)
+
+### References:
+
+* [VirtualEnv](https://virtualenv.pypa.io/en/latest/) documentation.
+* Digital Ocean [tutorial](https://www.digitalocean.com/community/tutorials/how-to-deploy-a-flask-application-on-an-ubuntu-vps) on installing flask app.
+* Ubuntu [documentation](https://help.ubuntu.com/16.04/ubuntu-help/index.html) on updating packages and security updates.
+* Udacity Instruction materials, Knowledge Center, Student Chat
+* Stack Overflow
+* Amazon AWS Services
