@@ -46,7 +46,9 @@ Following are steps I followed on Mac OS running Mohave:
 1.  open a terminal window {command + T}. Control-Alt-T on Unbuntu will also open terminal.
 2.  find the LightsailDefaultKey##locale##.pem file i downloaded from above section and move that file to your /Users/<loginid>/.ssh folder where <loginid> is your macos login id.  I also renamed the file to id_rsa, but if you already have an id_rsa file, just rename it to something short and easy to remember.
 3.  Use the ssh command to connect to the lightsail server.  command format as follows:
-```ssh -i <keyfilename> -p <port number> <user>@<host ip or dns>```
+
+    ```ssh -i <keyfilename> -p <port number> <user>@<host ip or dns>```
+
     * replace <keyfilename> with the name you renamed your LightsailDefaultKey##locale##.pem
     * replace <port number> with 22 for now which is default, but since this will change in the future, it is important to know how to specific the value.
     * replace <user> with ubuntu
