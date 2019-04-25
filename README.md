@@ -129,3 +129,38 @@ The key's randomart image is:
 12. Attempt to reconnect as grader user.
 ```ssh -i ~/.ssh/grader -p 22 grader@<lightsail ip address>```
 13. Do not proceed to next session unless your connection steps are successful.  We will be altering how to connect which may be catastrophic if the steps thus far were not successful.
+### Change SSH service port from 22 to 2200 and disable root login on lightsail server
+1. At this point you should be connected to the lightsail server via ssh as ubuntu or grader user.
+2. execute command ```sudo nano /etc/ssh/ssdh_config```.  This will open the configuration file for the ssh service.
+    * search for the line with _Port_ 22 and change it to _Port_ 2200
+    * search for the line with _PermitRootLogin_ and ensure it reads no
+    * Control-O return to save, and Control-X to exit
+4. restart ssh service with ```sudo service ssh restart```.  This may disconnect you.  From now on your connection command will use port 2200.
+```ssh -i ~/.ssh/grader -p 2200 grader@<lightsail ip address>```
+### Configure the firewall on the Lightsail server (UFW)
+1. Enter the following commands as logged into lightsail server with either ubuntu or grader user.
+```sudo ufw disable```
+```sudo ufw default deny incoming```
+```sudo ufw default allow outgoing```
+```sudo ufw allow 2200/tcp```
+```sudo ufw allow 80/tcp```
+```sudo ufw allow 123/udp```
+```sudo ufw enable```
+```sudo ufw status```
+    * make sure your Uncomplicated Firewall output is similar to follows:
+    ```
+    Status: active
+
+    To                         Action      From
+    --                         ------      ----
+    80                         ALLOW       Anywhere                  
+    80/tcp                     ALLOW       Anywhere                  
+    2200/tcp                   ALLOW       Anywhere                  
+    123/udp                    ALLOW       Anywhere                  
+    123                        ALLOW       Anywhere                  
+    80 (v6)                    ALLOW       Anywhere (v6)             
+    80/tcp (v6)                ALLOW       Anywhere (v6)             
+    2200/tcp (v6)              ALLOW       Anywhere (v6)             
+    123/udp (v6)               ALLOW       Anywhere (v6)             
+    123 (v6)                   ALLOW       Anywhere (v6)    
+    ```
