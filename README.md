@@ -62,14 +62,14 @@ This will outline steps needed to generate a key for a new user that will be pro
 Windows does not have a key generator by default, so one must be obtained.  A good example of a keygen tool is [puttygen](https://www.ssh.com/ssh/putty/windows/puttygen).
 #### Mac OS
 1. open a terminal window {command + T}.
-2. change to your .ssh folder for your profile.
+2. change to your .ssh folder for your profile. 
 ```cd ~/.ssh```
 3. execute command ```ssh-keygen```.  I will include example:
 ```
 Generating public/private rsa key pair.
 Enter file in which to save the key (/Users/jdb/.ssh/id_rsa): grader
-Enter passphrase (empty for no passphrase):
-Enter same passphrase again:
+Enter passphrase (empty for no passphrase): 
+Enter same passphrase again: 
 Your identification has been saved in grader.
 Your public key has been saved in grader.pub.
 The key fingerprint is:
@@ -164,3 +164,33 @@ The key's randomart image is:
     123/udp (v6)               ALLOW       Anywhere (v6)             
     123 (v6)                   ALLOW       Anywhere (v6)    
     ```
+### Install and configure packages on Lightsail server
+1. connect to lightsail server using ssh as defined in previous steps.
+2. Run the following commands to get needed packages and select Y if asked to confirm installation.
+
+```
+sudo apt-get install finger apache2 libapache2-mod-wsgi postgresql postgresql-contrib postgresql-server-dev-9.5 python2.7 python-flask python-pip httplib2 python-oauth2client virtualenv git
+```
+* for the next steps if the sudo pip install does not work, then try sudo -H pip install instead.
+```
+sudo pip install psycopg2
+sudo pip install psycopg2-binary
+sudo pip install flask
+sudo pip install requests
+sudo pip install SQLAlchemy
+sudo pip install google-api-python-client oauth2client
+```
+
+### Ensure Lightsail server has all needed updates and security patches
+
+1. run the following commands from shell in the lightsail server. Type Y to accept any changes.
+
+   > | Commands to execute in lightsail shell |
+   > | ----------------------------- |
+   > | ```sudo apt-get update``` |
+   > | ```sudo apt-get upgrade``` |
+> | ```sudo apt-get autoremove```|
+   >
+   
+   
+
